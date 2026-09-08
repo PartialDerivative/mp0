@@ -1,1 +1,49 @@
-/* Your CSS here. */
+body {
+    background-color: #ffffff;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+}
+
+.page {
+    background-color: #6e6e6e;
+    width: 600px;
+    padding: 40px;
+    text-align: center;
+}
+
+.page img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+}
+
+.page h1 {
+    color: white;
+    font-size: 28px;
+    margin: 20px 0 5px 0;
+}
+
+.page .email {
+    color: white;
+    font-style: italic;
+    margin: 0 0 10px 0;
+}
+
+.page a {
+    color: #a29bfe;
+    text-decoration: underline;
+    display: inline-block;
+    margin-bottom: 25px;
+}
+
+.bio {
+    text-align: left;
+}
+
+.bio p {
+    color: white;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
