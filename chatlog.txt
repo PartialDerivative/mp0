@@ -1,0 +1,85 @@
+Note: Most of the conversation with the AI was in Chinese, as it was easier for me to explain the issues in my native language. The code shown here is not the final version — some parts were later modified to match the final submission.
+
+看了终端编译日志，关键信息在这里：
+
+./src/css/main.css 2.26 KiB [built] [code generated]
+./node_modules/css-loader/dist/cjs.js!./src/css/main.css [built] [code generated]
+webpack compiled successfully
+
+这说明Webpack已经成功把 main.css 通过 style-loader 和 css-loader 处理并打包进了 bundle.js 里。 也就是说，你的CSS内容现在应该是被塞进了 bundle.js 这个文件，通过JavaScript在页面加载时动态注入 <style> 标签的方式生效——根本不需要浏览器单独去请求一个叫 main.css 的文件。
+
+所以现在浏览器Network里还在显示 main.css 404，这只是因为你的 index.html 里还残留着手动加的这一行：
+
+html
+<link rel="stylesheet" href="main.css">
+
+这行本身现在是无用且会报错的，但理论上不影响 style-loader 通过JS注入样式这件事——只要 bundle.js 真的被加载执行了。
+
+所以现在最可能的真正原因是：你的 index.html 里可能根本没有引入 bundle.js 这个文件！我之前看到的 index.html 内容里，</body> 前没有类似这样的一行：
+
+html
+<script src="bundle.js"></script>
+
+如果没有这一行，bundle.js（里面包含了你的CSS注入逻辑和其他JS代码）根本不会在浏览器里运行，那CSS自然一点效果都没有——这才完整解释了"编译成功了但页面毫无样式变化"的现象。
+
+请做这两件事：
+
+1. 删掉 index.html 里手动加的这一行（现在是多余且报错的）：
+
+html
+<link rel="stylesheet" href="main.css">
+
+2. 检查 </body> 结束标签之前，是否有这一行，如果没有请加上：
+
+html
+<script src="bundle.js"></script>
+
+完整的 <body> 部分应该长这样：
+
+html
+<body>
+    <div class="card">
+        <img src="assets/image.jpg" alt="profile picture">
+        <h2>Yifan Jiao</h2>
+        <p>I am a student studying MCS at UIUC.</p>
+        <a href="https://github.com/PartialDerivative">Visit My GitHub</a>
+    </div>
+    <script src="bundle.js"></script>
+</body>
+
+保存后刷新浏览器（不需要重启服务器，Webpack dev server会自动热更新）。麻烦确认一下你现在的 index.html 里到底有没有这个 <script> 标签，把完整的 <body> 部分截图给我看一下。
+
+你把html的代码完整发一遍
+
+这是完整修正后的 index.html 代码：
+
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP0 Personal Card</title>
+</head>
+<body>
+    <div class="card">
+        <img src="assets/image.jpg" alt="profile picture">
+        <h2>Yifan Jiao</h2>
+        <p>I am a student studying MCS at UIUC.</p>
+        <a href="https://github.com/PartialDerivative">Visit My GitHub</a>
+    </div>
+
+    <script src="bundle.js"></script>
+</body>
+</html>
+
+跟你原来的版本相比，改动了两处：
+
+删掉了 <head> 里手动加的这一行（不需要了，也是导致404报错的原因）：
+html
+   <link rel="stylesheet" href="main.css">
+加上了 </body> 结束前的这一行（这是让CSS真正生效的关键，让打包后的JS+CSS一起运行起来）：
+html
+   <script src="bundle.js"></script>
+
+把你现有的 index.html 整个替换成这版，保存后刷新浏览器（不需要重启 npm start，Webpack dev server 会自动检测文件变化并热更新）。这次应该就能看到蓝色卡片、居中布局、150x150的图片这些样式全部生效了。
